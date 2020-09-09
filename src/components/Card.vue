@@ -2,7 +2,7 @@
   <div class="card"
        @click="$emit('click')"
   >
-    <img class="img" :src="'/images/'+card.month+'-'+card.number+'.png'">
+    <img class="img" :src="'images/'+card.month+'-'+card.number+'.png'">
   </div>
 </template>
 
