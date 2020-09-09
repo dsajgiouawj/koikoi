@@ -1,24 +1,19 @@
 <template>
   <div class="room">
-    <Table class="table"
-           :cards="[{month:1,number:1},{month:3,number:1},{month:8,number:1},{month:11,number:1},{month:12,number:1}]"/>
-    <Hand class="hand"
-          :cards="[{month:1,number:1},{month:3,number:1},{month:8,number:1},{month:11,number:1},{month:12,number:1}]"/>
-    <Chat/>
+    <game class="game"/>
+    <chat class="chat"/>
   </div>
 </template>
 
 <script>
 import {socket} from '@/components/IO.js';
+import Game from "@/components/Game";
 import Chat from "@/components/Chat";
-import Hand from "@/components/Hand";
-import Table from "@/components/Table";
 
 export default {
   name: "Room",
   components: {
-    Table,
-    Hand,
+    Game,
     Chat
   },
   data() {
@@ -48,14 +43,5 @@ export default {
 .room {
   width: 100%;
   height: 100%;
-
-  .table {
-    height: 30%;
-    width: 100%
-  }
-
-  .hand {
-    height: 10%;
-  }
 }
 </style>
