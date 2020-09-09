@@ -1,24 +1,4 @@
 # koikoi
+[simple cardgame server](https://github.com/dsajgiouawj/simple-cardgame-server) を利用したオンライン対戦のこいこいです。
 
-## Project setup
-```
-npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+花札の画像は [こちら](https://www.pixiv.net/artworks/47260765) からお借りしました。
