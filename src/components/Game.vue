@@ -9,7 +9,7 @@
 
 <script>
 import {socket} from "@/components/IO.js"
-import {hanafudaPack} from "@/components/HanafudaPack";
+import {hanafudaPack, gameProtocol} from "@/components/Rule";
 import Table from "@/components/Table";
 import Hand from "@/components/Hand";
 
@@ -21,10 +21,11 @@ export default {
   },
   data() {
     return {
-      socket: socket,
-      hanafudaPack: hanafudaPack,
       handCards: [],
-      tableCards: []
+      tableCards: [],
+      initPhase: true,
+      turn: undefined,
+      cntCommand: 0
     }
   }, created() {
     socket.on('s2c_game-start', this.gameStart);
@@ -32,42 +33,126 @@ export default {
     socket.on('s2c_play_broadcast', this.receiveBroadcast);
   }, methods: {
     gameStart(data) {
-      console.log(this.messages);
-      let turn = data.turn;
-      if (turn === 0) {
-        //deal
-        this.init();
+      this.turn = data.turn;
+      if (this.turn === 0) {
+        this.send({operation: "add-cards-to-deck", next: 0, cards: hanafudaPack});
       }
-    }, init() {
-      this.send({operation: "add-cards-to-deck", next: 0, cards: hanafudaPack});
+    },
+    dealHand() {
       for (let i = 0; i < 8; i++) {
-        this.send({operation: "draw-expose", next: 0});
-        //todo: discard
+        this.send({operation: "draw", next: this.turn});
       }
-      for (let i = 0; i < 8; i++) {
-        this.send({operation: "draw", next: 0});
-      }
-      this.send({operation: "pass", next: 1});
-    }, send(param) {
+    },
+    send(param) {
+      console.log('send c2s_play:' + JSON.stringify(param));
       socket.emit('c2s_play', param);
-    }, receiveResponse(data) {
+    },
+    dealMe() {
+      this.send({operation: "draw", next: this.turn});
+    },
+    pass() {
+      this.send({operation: "pass", next: 1 - this.turn});
+    },
+    dealTable() {
+      console.assert(this.turn === 0);
+      this.send({operation: "draw-expose", next: this.turn});
+    },
+    discardTable() {
+      //draw-exposeにより、場札が手札に入っている。
+      console.assert(this.turn === 0);
+      console.assert(this.handCards.length >= 1);
+      this.send({operation: "discard-expose", next: this.turn, card: this.handCards.shift()});
+    },
+    verifyProtocol(operation, next) {
+      console.assert(gameProtocol[this.cntCommand].operation === operation,
+          '\nexpected:' + gameProtocol[this.cntCommand].operation + '\nactual:' + operation);
+      console.assert(gameProtocol[this.cntCommand].next === next,
+          '\nexpected:' + gameProtocol[this.cntCommand].next + '\nactual:' + next);
+      this.cntCommand += 1;
+    },
+    receiveResponse(data) {
       let operation = data.operation;
-      switch (operation) {
-        case "draw":
-          this.handCards.push(data.card);
-          break;
-        case "draw-expose":
-          this.tableCards.push(data.card);
-          break;
+      let next = data.next;
+      this.verifyProtocol(operation, next);
+
+      if (this.initPhase) {
+        switch (operation) {
+          case "add-cards-to-deck":
+            this.dealTable();
+            break;
+          case "draw-expose":
+            this.tableCards.push(data.card);
+            this.handCards.push(data.card);//サーバー側と同じく手札にも加えて置き、後でdiscardする。
+            if (this.tableCards.length < 8) {
+              this.dealTable();
+            } else {
+              this.discardTable();
+            }
+            break;
+          case "discard-expose":
+            if (this.handCards.length >= 1) {
+              this.discardTable();
+            } else {
+              this.dealMe();
+            }
+            break;
+          case "draw":
+            this.handCards.push(data.card);
+            if (this.handCards.length < 8) {
+              this.dealMe();
+            } else {
+              this.pass();
+            }
+            break;
+          case "pass":
+            if (data.next === 0) this.initPhase = false;
+            break;
+        }
+      } else {
+        switch (operation) {
+          case "add-cards-to-deck":
+            break;
+          case "draw":
+            this.handCards.push(data.card);
+            break;
+          case "draw-expose":
+            this.tableCards.push(data.card);
+            break;
+        }
       }
-    }, receiveBroadcast(data) {
+    },
+    receiveBroadcast(data) {
       let operation = data.operation;
-      switch (operation) {
-        case "draw":
-          break;
-        case "draw-expose":
-          this.tableCards.push(data.card);
-          break;
+      let next = data.next;
+      this.verifyProtocol(operation, next);
+
+      if (this.initPhase) {
+        switch (operation) {
+          case "add-cards-to-deck":
+            console.assert(data.cards === hanafudaPack);
+            break;
+          case "draw-expose":
+            this.tableCards.push(data.card);
+            break;
+          case "pass":
+            if (data.next === 0) {
+              this.initPhase = false;
+            } else {
+              this.dealMe();
+            }
+            break;
+        }
+      } else {
+        switch (operation) {
+          case "add-cards-to-deck":
+            console.assert(data.card === hanafudaPack);
+            break;
+          case "draw":
+            break;
+          case "draw-expose":
+            this.tableCards.push(data.card);
+            break;
+        }
       }
     }
   }
@@ -75,12 +160,18 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.table {
-  height: 30%;
-  width: 100%
-}
+.game {
+  height: 100%;
+  width: 100%;
 
-.hand {
-  height: 10%;
+  .table {
+    height: 30%;
+    width: 100%
+  }
+
+  .hand {
+    height: 10%;
+    width: 100%;
+  }
 }
 </style>

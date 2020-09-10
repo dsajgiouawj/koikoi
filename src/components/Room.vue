@@ -43,5 +43,15 @@ export default {
 .room {
   width: 100%;
   height: 100%;
+
+  .game {
+    height: 80%;
+    width: 100%;
+  }
+
+  .chat {
+    height: 20%;
+    width: 100%;
+  }
 }
 </style>

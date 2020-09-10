@@ -26,7 +26,7 @@ export default {
 
   .card {
     height: 100%;
-    margin: 0 1%;
+    margin: 0 2px;
   }
 }
 </style>

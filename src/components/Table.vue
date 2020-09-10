@@ -27,6 +27,9 @@ export default {
   flex-wrap: wrap;
   align-items: flex-start;
   align-content: flex-start;
+  height: 100%;
+  width: 100%;
+
   .card {
     box-sizing: border-box;
     height: 45%;
