@@ -34,6 +34,7 @@ export default {
       alert(JSON.stringify(data));
     });
 
+    //todo: gameとchatがイベントハンドラを登録する前にemitしている可能性がある
     socket.emit('c2s_request-matching', {"gameID": 0, "nickname": "anonymous"});
   }
 }

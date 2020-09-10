@@ -20,7 +20,6 @@ export default {
         {from: "Bob", message: "こんにちは"}
       ],
       draft: '',
-      socket: socket,
       enabled: false
     }
   }, created() {

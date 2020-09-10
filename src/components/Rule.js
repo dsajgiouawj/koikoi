@@ -67,8 +67,7 @@ function repeat8(arr) {
     return arr8;
 }
 
-let dealTable = repeat8([{operation: "draw-expose", next: 0}])
-    .concat(repeat8([{operation: "discard-expose", next: 0}]));
+let dealTable = repeat8([{operation: "draw-and-discard-expose", next: 0}]);
 let deal0 = repeat8([{operation: "draw", next: 0}]);
 let deal1 = repeat8([{operation: "draw", next: 1}]);
 let passTo0 = [{operation: "pass", next: 0}];
