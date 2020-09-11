@@ -12,9 +12,10 @@
 
 <script>
 import {socket} from "@/components/IO.js"
-import {send, equal, repeat8, hanafudaPack, assert} from "@/components/GameUtil";
 import Table from "@/components/Table";
 import Hand from "@/components/Hand";
+import {Initializer0} from "@/components/Initializer0";
+import {Initializer1} from "@/components/Initializer1";
 
 export default {
   name: "Game",
@@ -26,6 +27,7 @@ export default {
     return {
       handCards: [],
       tableCards: [],
+      initializer: undefined,
       // 'init'|'myTurnA'|'myTurnB'|'opTurnA'|'opTurnB'
       state: 'init',
       // 0|1
@@ -54,62 +56,16 @@ export default {
   }, methods: {
     gameStart(data) {
       this.playerTurn = data.turn;
-      if (this.playerTurn === 0) {
-        this.gameProtocol = [this.receive_addCards0]
-            .concat(repeat8(this.receive_dealTable0))
-            .concat(repeat8(this.receive_dealMe))
-            .concat(this.receive_dealEndMe)
-            .concat(repeat8(this.receive_dealOpponent))
-            .concat(this.receive_dealEndOpponent);
-        send("add-cards-to-deck", 0, undefined, {cards: hanafudaPack});
-      } else {
-        this.gameProtocol = [this.receive_addCards1]
-            .concat(repeat8(this.receive_dealTable1))
-            .concat(repeat8(this.receive_dealOpponent))
-            .concat(this.receive_dealEndOpponent)
-            .concat(repeat8(this.receive_dealMe))
-            .concat(this.receive_dealEndMe);
-      }
+      if (this.playerTurn === 0)
+        this.initializer = new Initializer0(this);
+      else
+        this.initializer = new Initializer1(this);
     },
-    receive_addCards(data) {
-      assert(data, 'add-cards-to-deck', 0);
-      console.assert(equal(data.cards, hanafudaPack));
+    addTable(card) {
+      this.tableCards.push(card);
     },
-    receive_addCards0(data) {
-      this.receive_addCards(data);
-      send('draw-and-discard-expose', 0);
-    },
-    receive_addCards1(data) {
-      this.receive_addCards(data);
-    },
-    receive_dealTable(data) {
-      assert(data, 'draw-and-discard-expose', 0);
-      this.tableCards.push(data.card);
-    },
-    receive_dealTable0(data) {
-      this.receive_dealTable(data);
-      if (this.tableCards.length < 8) send('draw-and-discard-expose', 0);
-      else send('draw', 0);
-    },
-    receive_dealTable1(data) {
-      this.receive_dealTable(data);
-    },
-    receive_dealOpponent(data) {
-      assert(data, 'draw', this.opponentTurn);
-    },
-    receive_dealMe(data) {
-      assert(data, 'draw', this.playerTurn);
-      this.handCards.push(data.card);
-      if (this.handCards.length < 8) send('draw', this.playerTurn);
-      else send('pass', this.opponentTurn);
-    },
-    receive_dealEndOpponent(data) {
-      assert(data, 'pass', this.playerTurn);
-      if (this.playerTurn === 0) this.beginMyTurn();
-      else send('draw', this.playerTurn);
-    },
-    receive_dealEndMe(data) {
-      assert(data, 'pass', this.opponentTurn);
+    addHand(card) {
+      this.handCards.push(card);
     },
     beginMyTurn() {
       this.state = 'myTurnA';
@@ -127,10 +83,10 @@ export default {
       console.log(index);
     },
     receiveResponse(data) {
-      this.gameProtocol.shift()(data);
+      this.initializer.receive(data);
     },
     receiveBroadcast(data) {
-      this.gameProtocol.shift()(data);
+      this.initializer.receive(data);
     }
   }
 }
