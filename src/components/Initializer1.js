@@ -17,7 +17,7 @@ export class Initializer1 {
         this.receive_dealMe = (data) => {
             assert(data, 'draw', 1);
             game.addHand(data.card);
-            if (this.gameProtocol[0] === this.receive_dealMe) send('draw', 1);
+            if (this.protocol[0] === this.receive_dealMe) send('draw', 1);
             else send('pass', 0);
         }
         this.receive_dealEndOpponent = (data) => {
@@ -26,8 +26,9 @@ export class Initializer1 {
         }
         this.receive_dealEndMe = (data) => {
             assert(data, 'pass', 0);
+            game.endInitialization();
         }
-        this.gameProtocol = [this.receive_addCards1]
+        this.protocol = [this.receive_addCards1]
             .concat(repeat8(this.receive_dealTable1))
             .concat(repeat8(this.receive_dealOpponent))
             .concat(this.receive_dealEndOpponent)
@@ -36,6 +37,6 @@ export class Initializer1 {
     }
 
     receive(data) {
-        this.gameProtocol.shift()(data);
+        this.protocol.shift()(data);
     }
 }

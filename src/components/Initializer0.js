@@ -10,7 +10,7 @@ export class Initializer0 {
         this.receive_dealTable0 = (data) => {
             assert(data, 'draw-and-discard-expose', 0);
             game.addTable(data.card);
-            if (this.gameProtocol[0] === this.receive_dealTable0) send('draw-and-discard-expose', 0);
+            if (this.protocol[0] === this.receive_dealTable0) send('draw-and-discard-expose', 0);
             else send('draw', 0);
         }
         this.receive_dealOpponent = (data) => {
@@ -19,17 +19,17 @@ export class Initializer0 {
         this.receive_dealMe = (data) => {
             assert(data, 'draw', 0);
             game.addHand(data.card);
-            if (this.gameProtocol[0] === this.receive_dealMe) send('draw', 0);
+            if (this.protocol[0] === this.receive_dealMe) send('draw', 0);
             else send('pass', 1);
         }
         this.receive_dealEndOpponent = (data) => {
             assert(data, 'pass', 0);
-            game.beginMyTurn();
+            game.endInitialization();
         }
         this.receive_dealEndMe = (data) => {
             assert(data, 'pass', 1);
         }
-        this.gameProtocol = [this.receive_addCards0]
+        this.protocol = [this.receive_addCards0]
             .concat(repeat8(this.receive_dealTable0))
             .concat(repeat8(this.receive_dealMe))
             .concat(this.receive_dealEndMe)
@@ -40,6 +40,6 @@ export class Initializer0 {
     }
 
     receive(data) {
-        this.gameProtocol.shift()(data);
+        this.protocol.shift()(data);
     }
 }
