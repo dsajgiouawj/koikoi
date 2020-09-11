@@ -3,7 +3,8 @@
     <card class="card"
           v-for="(card,index) in cards" :key="index"
           :card="card"
-          @click="selectTable(index)"
+          :border-color="card.month===selectedMonth?'yellow':'transparent'"
+          @click="select(index)"
     />
   </div>
 </template>
@@ -15,7 +16,12 @@ export default {
   name: "Table",
   components: {Card},
   props: {
-    cards: Array
+    cards: Array,
+    selectedMonth: Number
+  }, methods: {
+    select(index) {
+      this.$emit('select', index);
+    }
   }
 }
 </script>

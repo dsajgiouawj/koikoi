@@ -3,7 +3,7 @@
     <card class="card"
           v-for="(card,index) in cards" :key="index"
           :card="card"
-          @click="selectHand(index)"
+          @click="select(index)"
     />
   </div>
 </template>
@@ -16,6 +16,10 @@ export default {
   components: {Card},
   props: {
     cards: Array
+  }, methods: {
+    select(index) {
+      this.$emit('select', index);
+    }
   }
 }
 </script>

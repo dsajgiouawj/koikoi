@@ -2,7 +2,7 @@
   <div class="card"
        @click="$emit('click')"
   >
-    <img class="img" :src="'images/'+card.month+'-'+card.number+'.png'">
+    <img class="img" :style="{border: '1px solid '+ borderColor}" :src="'images/'+card.month+'-'+card.number+'.png'">
   </div>
 </template>
 
@@ -10,7 +10,12 @@
 export default {
   name: "Card",
   props: {
-    card: Object
+    card: Object,
+    borderColor: {
+      type: String,
+      default: 'transparent'
+    }
+
   }
 }
 </script>
