@@ -19,11 +19,11 @@ export class OpTurnHandler {
                     break;
                 case 1:
                 case 3:
-                    game.opTurn_match(data.card);
+                    game.match(data.card, undefined, false);
                     break;
                 case 2:
                     console.assert(data.gameInfo !== undefined);
-                    game.opTurn_match(data.card, data.gameInfo);
+                    game.match(data.card, data.gameInfo, false);
                     break;
                 default:
                     console.log('not implemented');
@@ -45,11 +45,11 @@ export class OpTurnHandler {
                     break;
                 case 1:
                 case 3:
-                    game.opTurn_match(d);
+                    game.match(d, undefined, false);
                     break;
                 case 2:
                     console.assert(data.gameInfo !== undefined);
-                    game.opTurn_match(d, data.gameInfo);
+                    game.match(d, data.gameInfo, false);
                     break;
                 default:
                     console.log('not implemented');

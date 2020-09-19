@@ -19,11 +19,11 @@ export class MyTurnHandler {
                     break;
                 case 1:
                 case 3:
-                    game.myTurn_match(data.card);
+                    game.match(data.card, undefined, true);
                     break;
                 case 2:
                     console.assert(data.gameInfo !== undefined);
-                    game.myTurn_match(data.card, data.gameInfo);
+                    game.match(data.card, data.gameInfo, true);
                     break;
                 default:
                     console.log('not implemented');
@@ -46,11 +46,11 @@ export class MyTurnHandler {
                     break;
                 case 1:
                 case 3:
-                    game.opTurn_match(this.selectedCard);
+                    game.match(this.selectedCard, undefined, true);
                     break;
                 case 2:
                     console.assert(data.gameInfo !== undefined);
-                    game.opTurn_match(this.selectedCard, data.gameInfo);
+                    game.match(this.selectedCard, data.gameInfo, true);
                     break;
                 default:
                     console.log('not implemented');

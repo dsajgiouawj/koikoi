@@ -15,7 +15,6 @@ export default {
       type: String,
       default: 'transparent'
     }
-
   }
 }
 </script>
@@ -23,6 +22,7 @@ export default {
 <style lang="scss" scoped>
 .card {
   .img {
+    box-sizing: border-box;
     width: auto;
     height: 100%;
   }

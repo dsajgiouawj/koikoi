@@ -3,13 +3,16 @@ import {assert, hanafudaPack, repeat8, send} from "@/components/GameUtil";
 
 export class Initializer0 {
     constructor(game) {
+        this.handCards = [];
+        this.tableCards = [];
+
         this.receive_addCards0 = (data) => {
             assert(data, 'add-cards-to-deck', 0);
             send('draw-and-discard-expose', 0);
         }
         this.receive_dealTable0 = (data) => {
             assert(data, 'draw-and-discard-expose', 0);
-            game.addTable(data.card);
+            this.tableCards.push(data.card);
             if (this.protocol[0] === this.receive_dealTable0) send('draw-and-discard-expose', 0);
             else send('draw', 0);
         }
@@ -18,13 +21,13 @@ export class Initializer0 {
         }
         this.receive_dealMe = (data) => {
             assert(data, 'draw', 0);
-            game.addHand(data.card);
+            this.handCards.push(data.card);
             if (this.protocol[0] === this.receive_dealMe) send('draw', 0);
             else send('pass', 1);
         }
         this.receive_dealEndOpponent = (data) => {
             assert(data, 'pass', 0);
-            game.endInitialization();
+            game.endInitialization(this.handCards, this.tableCards);
         }
         this.receive_dealEndMe = (data) => {
             assert(data, 'pass', 1);

@@ -1,35 +1,52 @@
 <template>
   <div class="game">
-    <Table class="table"
-           :cards="tableCards"
-           :selected-month="selectedMonth"
-           @select="selectTable"/>
-    <Hand class="hand"
-          :cards="handCards"
-          @select="selectHand"/>
+    <point-pile class="opPointPile"
+                :cards="opPointPile"/>
+    <span class="table">
+      <span class="deck-margin"/>
+      <img class="deck" src="images/black.png"/>
+      <span class="deck-margin"/>
+      <card class="card"
+            v-for="(card,index) in tableCards" :key="JSON.stringify(card)"
+            :card="card"
+            :border-color="card!==undefined&&card.month===selectedMonth?'yellow':'transparent'"
+            @click="selectTable(index)"
+      />
+    </span>
+    <span class="hand">
+      <card class="card"
+            v-for="(card,index) in handCards" :key="JSON.stringify(card)"
+            :card="card"
+            @click="selectHand(index)"
+      />
+    </span>
+    <point-pile class="myPointPile"
+                :cards="myPointPile"/>
   </div>
 </template>
 
 <script>
 import {socket} from "@/components/IO.js"
-import Table from "@/components/Table";
-import Hand from "@/components/Hand";
 import {Initializer0} from "@/components/Initializer0";
 import {Initializer1} from "@/components/Initializer1";
 import {MyTurnHandler} from "@/components/MyTurnHandler";
 import {OpTurnHandler} from "@/components/OpTurnHandler";
+import Card from "@/components/Card";
 import {equal} from "@/components/GameUtil";
+import PointPile from "@/components/PointPile";
 
 export default {
   name: "Game",
   components: {
-    Table,
-    Hand
+    PointPile,
+    Card
   },
   data() {
     return {
       handCards: [],
       tableCards: [],
+      myPointPile: [],
+      opPointPile: [],
       state: undefined,
       // 0|1
       playerTurn: undefined
@@ -60,21 +77,20 @@ export default {
       else
         this.state = new Initializer1(this);
     },
-    endInitialization() {
-      if (this.playerTurn === 0) this.state = new MyTurnHandler(this, 0);
-      else this.state = new OpTurnHandler(this, 0);
-    },
     addTable(card) {
       this.tableCards.push(card);
     },
-    addHand(card) {
-      this.handCards.push(card);
+    endInitialization(hand, table) {
+      this.handCards = hand;
+      this.tableCards = table;
+      if (this.playerTurn === 0) this.state = new MyTurnHandler(this, 0);
+      else this.state = new OpTurnHandler(this, 0);
     },
     endMyTurn() {
-
+      this.state = new OpTurnHandler(this, 0);
     },
     endOpTurn() {
-
+      this.state = new MyTurnHandler(this, 0);
     },
     selectHand(index) {
       if (this.state instanceof MyTurnHandler)
@@ -84,43 +100,40 @@ export default {
       if (this.state instanceof MyTurnHandler)
         this.state.selectTable(this.tableCards[index]);
     },
-    myTurn_match(hand, table) {
-      if (table === undefined) {
-        let filtered = this.tableCards.filter(c => c !== undefined && c.month === hand.month);
-        console.assert(filtered.length === 1 || filtered.length === 3);
-        filtered.map(c => undefined);// eslint-disable-line no-unused-vars
-      } else {
-        let cnt = 0;
-        console.assert(this.tableCards.filter(c => c.month === hand.month).length === 2);
-        for (let i = 0; i < this.tableCards.length; i++) {
-          if (equal(this.tableCards[i], table)) {
-            this.tableCards[i] = undefined;
-            cnt += 1;
+    match(selectedHand, selectedTable, isMyTurn) {
+      console.log(isMyTurn);
+      switch (this.tableCandidates(selectedHand.month).length) {
+        case 2:
+          console.assert(selectedHand.month === selectedTable.month);
+          if (isMyTurn) {
+            this.myPointPile.push(selectedHand, selectedTable);
+            this.handCards = this.handCards.filter(c => !equal(c, selectedHand));
+          } else {
+            this.opPointPile.push(selectedHand, selectedTable);
           }
-        }
-        console.assert(cnt === 1);
-      }
-    },
-    opTurn_match(hand, table) {
-      if (table === undefined) {
-        let filtered = this.tableCards.filter(c => c !== undefined && c.month === hand.month);
-        console.assert(filtered.length === 1 || filtered.length === 3);
-        filtered.map(c => undefined);// eslint-disable-line no-unused-vars
-      } else {
-        let cnt = 0;
-        console.assert(this.tableCards.filter(c => c.month === hand.month).length === 2);
-        for (let i = 0; i < this.tableCards.length; i++) {
-          if (equal(this.tableCards[i], table)) {
-            this.tableCards[i] = undefined;
-            cnt += 1;
+          this.tableCards = this.tableCards.filter(c => !equal(c, selectedTable));
+          break;
+        case 1:
+        case 3:
+          this.tableCards
+              .filter(c => c.month === selectedHand.month)
+              .forEach(c => isMyTurn ? this.myPointPile.push(c) : this.opPointPile.push(c));
+          if (isMyTurn) {
+            this.myPointPile.push(selectedHand);
+            this.handCards = this.handCards.filter(c => !equal(c, selectedHand));
+          } else {
+            this.opPointPile.push(selectedHand);
           }
-        }
-        console.assert(cnt === 1);
+          this.tableCards = this.tableCards.filter(c => c.month !== selectedHand.month);
+          break;
+        default:
+          console.assert(false);
       }
     },
     tableCandidates(month) {
-      return this.tableCards.filter(c => c !== undefined && c.month === month);
+      return this.tableCards.filter(c => c.month === month);
     },
+
     receiveResponse(data) {
       this.state.receive(data);
     },
@@ -138,11 +151,49 @@ export default {
 
   .table {
     height: 30%;
-    width: 100%
+    width: 100%;
+    background-color: darkgreen;
+
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    align-content: flex-start;
+
+    .deck-margin {
+      height: 27.5%;
+    }
+
+    .deck {
+      height: 45%;
+      margin: 0 30px;
+    }
+
+    .card {
+      height: calc(50% - 4px);
+      margin: 2px 2px;
+    }
   }
 
   .hand {
     height: 10%;
+    width: 100%;
+
+    display: flex;
+
+    .card {
+      height: calc(100% - 4px);
+      margin: 0 2px;
+    }
+  }
+
+  .opPointPile {
+    height: 30%;
+    width: 100%;
+  }
+
+  .myPointPile {
+    height: 30%;
     width: 100%;
   }
 }
