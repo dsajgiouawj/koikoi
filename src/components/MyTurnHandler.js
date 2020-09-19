@@ -85,7 +85,7 @@ export class MyTurnHandler {
             send('discard-expose', this.turn, gameInfo, {"card": this.selectedCard});
         } else if (this.protocol[0] === this.receive_step3) {
             if (this.selectedCard.month !== card.month) return;
-            send('pass', 1 - this.turn, card);
+            send('pass', this.turn, card);
         }
     }
 }

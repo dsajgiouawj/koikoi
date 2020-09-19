@@ -3,16 +3,17 @@
     <point-pile class="opPointPile"
                 :cards="opPointPile"/>
     <span class="table">
-      <span class="deck-margin"/>
       <img class="deck" src="images/black.png"/>
-      <span class="deck-margin"/>
-      <card class="card"
-            v-for="(card,index) in tableCards" :key="JSON.stringify(card)"
-            :card="card"
-            :border-color="card!==undefined&&card.month===selectedMonth?'yellow':'transparent'"
-            @click="selectTable(index)"
-      />
+
+      <transition-group name="table" tag="div" class="transition-group">
+        <card v-for="(card,index) in tableCards" :key="JSON.stringify(card)"
+              class="card"
+              :card="card"
+              :border-color="card!==undefined&&card.month===selectedMonth?'yellow':'transparent'"
+              @click="selectTable(index)"/>
+      </transition-group>
     </span>
+
     <span class="hand">
       <card class="card"
             v-for="(card,index) in handCards" :key="JSON.stringify(card)"
@@ -20,6 +21,7 @@
             @click="selectHand(index)"
       />
     </span>
+
     <point-pile class="myPointPile"
                 :cards="myPointPile"/>
   </div>
@@ -155,23 +157,34 @@ export default {
     background-color: darkgreen;
 
     display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
     align-items: center;
-    align-content: flex-start;
-
-    .deck-margin {
-      height: 27.5%;
-    }
 
     .deck {
       height: 45%;
       margin: 0 30px;
     }
 
-    .card {
-      height: calc(50% - 4px);
-      margin: 2px 2px;
+    .transition-group {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      flex-wrap: wrap;
+      align-items: center;
+      align-content: flex-start;
+
+      .card {
+        height: calc(50% - 4px);
+        margin: 2px;
+      }
+    }
+
+    .table-enter-active, .table-leave-active {
+      transition: all 1s;
+    }
+
+    .table-enter, .table-leave-to {
+      opacity: 0;
     }
   }
 
